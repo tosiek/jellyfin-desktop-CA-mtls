@@ -47,6 +47,8 @@ jobs:
         version: "${{ env.QT_VERSION }}"
         arch: "${{ matrix.qt_arch }}"
         modules: "qtwebchannel qtpositioning"
+        # aqtinstall 3.3.0 cannot read the Qt 6.12 repository yet
+        aqtsource: "git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7"
     - name: Install Qt WebEngine with the WGL interop leak fix
       run: |
         & dev/windows/qtwebengine-fix.ps1 -QtDir "$env:QT_ROOT_DIR"

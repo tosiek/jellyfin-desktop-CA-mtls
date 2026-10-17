@@ -29,8 +29,20 @@ winget install --id 7zip.7zip --accept-package-agreements --accept-source-agreem
 if errorlevel 1 echo Warning: 7-Zip may already be installed
 
 echo [4/14] Installing aqtinstall...
-winget install --id miurahr.aqtinstall --accept-package-agreements --accept-source-agreements --silent
-if errorlevel 1 echo Warning: aqtinstall may already be installed
+REM aqtinstall 3.3.0 (the winget package) cannot read the Qt 6.12 repository yet, so a fixed
+REM commit is installed from git into a venv. Needs Python 3 and git on PATH.
+set "AQT=!DEPS_DIR!\aqtvenv\Scripts\aqt.exe"
+if not exist "!AQT!" (
+    python -m venv "!DEPS_DIR!\aqtvenv"
+    if errorlevel 1 (
+        echo ERROR: Python 3 not found. Install it with: winget install Python.Python.3.13
+    ) else (
+        "!DEPS_DIR!\aqtvenv\Scripts\python.exe" -m pip install -q "aqtinstall @ git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7"
+        if errorlevel 1 echo ERROR: Failed to install aqtinstall
+    )
+) else (
+    echo aqtinstall already installed, skipping
+)
 
 echo [5/14] Installing Visual Studio 2022 Build Tools...
 winget install --id Microsoft.VisualStudio.2022.BuildTools ^
@@ -53,7 +65,7 @@ if errorlevel 1 echo Warning: Inno Setup may already be installed
 echo [8/14] Installing Qt !QT_VERSION!...
 if not exist "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" (
     pushd "!DEPS_DIR!"
-    aqt install-qt windows desktop !QT_VERSION! win64_msvc2022_64 -m qtwebchannel qtpositioning -O "qt"
+    "!AQT!" install-qt windows desktop !QT_VERSION! win64_msvc2022_64 -m qtwebchannel qtpositioning -O "qt"
     popd
 ) else (
     echo Qt already installed, skipping
