@@ -23,7 +23,7 @@ dev\windows\test.bat
 `setup.bat` installs everything else:
 - Visual Studio 2022 Build Tools (v143 toolset)
 - CMake, Ninja, 7-Zip, Inno Setup
-- aqtinstall, Qt 6.10.1
+- aqtinstall, Qt 6.12.0 (Qt WebEngine from `qtwebengine-fix.ps1`)
 - libmpv (AVX2 + fallback), VC++ redistributable
 - MinGW, WiX (for packaging)
 
@@ -71,6 +71,6 @@ Common causes:
 
 ## Notes
 
-- Qt 6.10.1 requires VS 2022 toolset (v143) for ABI compatibility
+- Qt 6.12.0 requires VS 2022 toolset (v143) for ABI compatibility
 - Version info centralized in `common.bat`
 - `run.bat` adds Qt/mpv to PATH; `bundle.bat` creates standalone packages

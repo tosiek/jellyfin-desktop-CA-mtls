@@ -3,9 +3,9 @@ name: build-windows
 env:
   # 20251214-git-f7be2ee leaks one Windows Event handle per rendered video frame
   MPV_VERSION: "20261011-git-accb7b2821"
-  # using older version due to severe memory leak
-  # https://qt-project.atlassian.net/browse/QTBUG-141377
-  QT_VERSION: "6.9.3"
+  # Qt WebEngine is installed by dev/windows/qtwebengine-fix.ps1 (release package plus
+  # the WGL interop leak fix for AMD drivers, https://github.com/tosiek/qt-opengl-amd-leak)
+  QT_VERSION: "6.12.0"
 
 on:
   workflow_call:
@@ -45,7 +45,11 @@ jobs:
       with:
         version: "${{ env.QT_VERSION }}"
         arch: "${{ matrix.qt_arch }}"
-        modules: "qtwebengine qtwebchannel qtpositioning"
+        modules: "qtwebchannel qtpositioning"
+    - name: Install Qt WebEngine with the WGL interop leak fix
+      run: |
+        & dev/windows/qtwebengine-fix.ps1 -QtDir "$env:QT_ROOT_DIR"
+      shell: powershell
     - name: Install Inno Setup
       run: |
         choco install innosetup -y
