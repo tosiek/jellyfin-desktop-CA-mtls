@@ -1,12 +1,15 @@
-# Jellyfin Desktop - installs Qt WebEngine 6.12.0 with the WGL interop leak fix into a Qt install
+# Jellyfin Desktop - installs Qt WebEngine 6.12.0 with the WGL interop fixes into a Qt install
 #
 # 1. aqt (and install-qt-action) install a stale pre-release Qt WebEngine for Qt 6.12.0 that does
 #    not load with the release qtbase, so the release package is installed from download.qt.io.
 # 2. Qt6WebEngineCore.dll and QtWebEngineProcess.exe are replaced with builds that include
-#    0001-wgl-interop-texture-pool.patch. Without it, Qt Quick on OpenGL with AMD drivers leaks
-#    the D3D11 texture of every web frame (several hundred MB per minute while the page changes),
-#    because the driver does not free textures after wglDXUnregisterObjectNV.
-#    Details and the patch: https://github.com/tosiek/qt-opengl-amd-leak
+#    0001-wgl-interop-texture-pool.patch and 0002-wgl-helper-no-static-destructor.patch.
+#    Without 0001, Qt Quick on OpenGL with AMD drivers leaks the D3D11 texture of every web
+#    frame (several hundred MB per minute while the page changes), because the driver does not
+#    free textures after wglDXUnregisterObjectNV. Without 0002, the app crashes on exit in
+#    atio6axx.dll (0xc0000409), because Qt closes the interop device in DLL_PROCESS_DETACH,
+#    after the AMD D3D11 driver has been unloaded.
+#    Details and the patches: https://github.com/tosiek/qt-opengl-amd-leak
 #
 # Usage: powershell -ExecutionPolicy Bypass -File qtwebengine-fix.ps1 -QtDir <Qt>\6.12.0\msvc2022_64
 
@@ -20,10 +23,10 @@ $ProgressPreference = "SilentlyContinue"
 
 $WebEngineUrl = "https://download.qt.io/online/qtsdkrepository/windows_x86/extensions/qtwebengine/6120/61400/msvc2022_64/extensions.qtwebengine.6120.61400.win64_msvc2022_64/6.12.0-0-202609281005qtwebengine-Windows-Windows_11_24H2-MSVC2022-Windows-Windows_11_24H2-X86_64.7z"
 $WebEngineSha256 = "3b3b1fe362d6d20e97a8201c9bd2a7921f4de481cc0f3b919fcdd6f810557b18"
-$FixUrl = "https://github.com/tosiek/qt-opengl-amd-leak/releases/download/v3/qtwebengine-6.12.0-wgl-pool-win64.zip"
-$FixSha256 = "d5e8e2811c587e6177de7e95047c1fc4552294e80069190b6399e322ab9a8bf1"
+$FixUrl = "https://github.com/tosiek/qt-opengl-amd-leak/releases/download/v4/qtwebengine-6.12.0-wgl-fixes-win64.zip"
+$FixSha256 = "1e4722cd40474f35e763b1119a6b943b3684bcca28b6a8cef3f56d1729f16e7e"
 $FixFiles = @{
-    "Qt6WebEngineCore.dll"   = "05582aa5cf412dc989e393a187a556bdf0c0789c48b6a48e30e39cea95d975f9"
+    "Qt6WebEngineCore.dll"   = "44e5e22c8457629047eb8e61d83ce1d60b8503b74866f36d77718f0e03abcbcb"
     "QtWebEngineProcess.exe" = "ce2fc75d3042271f066b29bd3edceec02b67896e59cc5494c6c5c8ea58cbdc86"
 }
 
@@ -59,7 +62,7 @@ try {
     $fix = Join-Path $tmp "fix.zip"
     Get-VerifiedFile $FixUrl $fix $FixSha256
     Expand-Archive -Path $fix -DestinationPath $tmp
-    $fixDir = Join-Path $tmp "qtwebengine-6.12.0-wgl-pool-win64"
+    $fixDir = Join-Path $tmp "qtwebengine-6.12.0-wgl-fixes-win64"
     foreach ($name in $FixFiles.Keys) {
         $src = Join-Path $fixDir $name
         if ((Get-FileHash -Algorithm SHA256 $src).Hash -ne $FixFiles[$name]) {

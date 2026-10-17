@@ -4,7 +4,7 @@ env:
   # 20251214-git-f7be2ee leaks one Windows Event handle per rendered video frame
   MPV_VERSION: "20261011-git-accb7b2821"
   # Qt WebEngine is installed by dev/windows/qtwebengine-fix.ps1 (release package plus
-  # the WGL interop leak fix for AMD drivers, https://github.com/tosiek/qt-opengl-amd-leak)
+  # the WGL interop fixes for AMD drivers (leak, exit crash), https://github.com/tosiek/qt-opengl-amd-leak)
   QT_VERSION: "6.12.0"
 
 on:
@@ -49,7 +49,7 @@ jobs:
         modules: "qtwebchannel qtpositioning"
         # aqtinstall 3.3.0 cannot read the Qt 6.12 repository yet
         aqtsource: "git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7"
-    - name: Install Qt WebEngine with the WGL interop leak fix
+    - name: Install Qt WebEngine with the WGL interop fixes
       run: |
         & dev/windows/qtwebengine-fix.ps1 -QtDir "$env:QT_ROOT_DIR"
       shell: powershell
