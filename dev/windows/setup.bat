@@ -53,10 +53,17 @@ if errorlevel 1 echo Warning: Inno Setup may already be installed
 echo [8/14] Installing Qt !QT_VERSION!...
 if not exist "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" (
     pushd "!DEPS_DIR!"
-    aqt install-qt windows desktop !QT_VERSION! win64_msvc2022_64 -m qtwebengine qtwebchannel qtpositioning -O "qt"
+    aqt install-qt windows desktop !QT_VERSION! win64_msvc2022_64 -m qtwebchannel qtpositioning -O "qt"
     popd
 ) else (
     echo Qt already installed, skipping
+)
+REM Release Qt WebEngine package with the WGL interop leak fix for AMD drivers
+if not exist "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64\bin\Qt6WebEngineCore.dll" (
+    powershell -ExecutionPolicy Bypass -File "!SCRIPT_DIR!qtwebengine-fix.ps1" -QtDir "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" -SevenZip "!SEVENZIP!"
+    if errorlevel 1 echo ERROR: Failed to install Qt WebEngine
+) else (
+    echo Qt WebEngine already installed, skipping
 )
 
 echo [9/14] Downloading libmpv AVX2...
