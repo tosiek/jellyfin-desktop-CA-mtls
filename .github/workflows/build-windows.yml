@@ -87,10 +87,14 @@ jobs:
         if (-not $vsPath) {
             $vsPath = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio\*\*" | Where-Object { Test-Path "$_\VC\Redist\MSVC" } | Select-Object -First 1).FullName
         }
-        $vsRedist = Get-ChildItem "$vsPath\VC\Redist\MSVC\*\${{ matrix.vc_redist_arch }}\Microsoft.VC*.CRT" | Select-Object -First 1
+        # Take the newest runtime: the runner also has older ones (14.29), and Qt built with a newer
+        # compiler crashes with those (std::mutex in msvcp140.dll before 14.40)
+        $redistVersion = { if ($_.FullName -match '\\MSVC\\(\d+\.\d+\.\d+)') { [version]$Matches[1] } else { [version]'0.0' } }
+        $vsRedist = Get-ChildItem "$vsPath\VC\Redist\MSVC\*\${{ matrix.vc_redist_arch }}\Microsoft.VC*.CRT" | Sort-Object $redistVersion -Descending | Select-Object -First 1
         if (-not $vsRedist) {
-            $vsRedist = Get-ChildItem "$vsPath\VC\Redist\MSVC" -Recurse -Filter "Microsoft.VC*.CRT" | Where-Object { $_.FullName -like "*${{ matrix.vc_redist_arch }}*" } | Select-Object -First 1
+            $vsRedist = Get-ChildItem "$vsPath\VC\Redist\MSVC" -Recurse -Filter "Microsoft.VC*.CRT" | Where-Object { $_.FullName -like "*${{ matrix.vc_redist_arch }}*" } | Sort-Object $redistVersion -Descending | Select-Object -First 1
         }
+        Write-Host "Bundling VC runtime from $($vsRedist.FullName)"
         Copy-Item "$vsRedist\*.dll" deps/vcruntime/
         # Also grab VCRedist installer for optional system-wide install
         Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile deps/vc_redist.x64.exe
