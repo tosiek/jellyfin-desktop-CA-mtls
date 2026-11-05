@@ -457,6 +457,22 @@ int main(int argc, char *argv[])
       qWarning() << "OpenGL driver lacks WGL_NV_DX_interop, disabling QtWebEngine GPU compositing";
       addChromiumFlag("--disable-gpu-compositing");
     }
+
+    // Some OpenGL drivers leak each web frame QtWebEngine imports into the scene graph,
+    // composite in software on those
+    QString gpuCompositing = SettingsComponent::readPreinitValue(SETTINGS_SECTION_MAIN, "webGpuCompositing").toString();
+    if (gpuCompositing == "disabled")
+    {
+      qInfo() << "QtWebEngine GPU compositing disabled in settings";
+      addChromiumFlag("--disable-gpu-compositing");
+    }
+    else if (gpuCompositing != "enabled" && !chromiumFlags.contains("--disable-gpu") &&
+             !chromiumFlags.contains("--disable-gpu-compositing") &&
+             dxInteropLeaksTextures(ProfileManager::activeProfile().cacheDir("gpu-probe.ini")))
+    {
+      qInfo() << "OpenGL driver leaks DX interop textures, disabling QtWebEngine GPU compositing";
+      addChromiumFlag("--disable-gpu-compositing");
+    }
 #endif
 
     qputenv("QTWEBENGINE_CHROMIUM_FLAGS", chromiumFlags.join(" ").toUtf8());
