@@ -1,0 +1,44 @@
+name: publish-release
+
+# Publishes the newest successful build-windows run of all-fixes as a pre-release, with SHA256SUMS.txt.
+# Start it by pushing a tag: git tag all-fixes-YYYYMMDD && git push origin all-fixes-YYYYMMDD
+on:
+  push:
+    tags:
+      - all-fixes-*
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find the newest successful Windows build
+        id: build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build-windows.yml --branch all-fixes --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$id"
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
+      - name: Download the installer and the portable build
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ steps.build.outputs.id }}
+          github-token: ${{ github.token }}
+          path: dist
+          merge-multiple: true
+
+      - name: Create the pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.build.outputs.id }}
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" * --repo "$GITHUB_REPOSITORY" --verify-tag --prerelease \
+            --title "Jellyfin Desktop – all Windows fixes ($GITHUB_REF_NAME)" \
+            --notes "Built by https://github.com/$GITHUB_REPOSITORY/actions/runs/$RUN_ID"
