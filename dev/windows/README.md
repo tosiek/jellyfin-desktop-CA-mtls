@@ -23,7 +23,7 @@ dev\windows\test.bat
 `setup.bat` installs everything else:
 - Visual Studio 2022 Build Tools (v143 toolset)
 - CMake, Ninja, 7-Zip, Inno Setup
-- aqtinstall, Qt 6.12.0 (Qt WebEngine from `qtwebengine-fix.ps1`)
+- aqtinstall, Qt 6.12.0 (Qt WebEngine from `qtwebengine-release.ps1`)
 - libmpv (AVX2 + fallback), VC++ redistributable
 - MinGW, WiX (for packaging)
 

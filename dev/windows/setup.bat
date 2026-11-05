@@ -70,9 +70,9 @@ if not exist "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" (
 ) else (
     echo Qt already installed, skipping
 )
-REM Release Qt WebEngine package with the WGL interop fixes for AMD drivers (leak, exit crash)
+REM Release Qt WebEngine package (aqt installs a stale pre-release package for 6.12.0)
 if not exist "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64\bin\Qt6WebEngineCore.dll" (
-    powershell -ExecutionPolicy Bypass -File "!SCRIPT_DIR!qtwebengine-fix.ps1" -QtDir "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" -SevenZip "!SEVENZIP!"
+    powershell -ExecutionPolicy Bypass -File "!SCRIPT_DIR!qtwebengine-release.ps1" -QtDir "!DEPS_DIR!\qt\!QT_VERSION!\msvc2022_64" -SevenZip "!SEVENZIP!"
     if errorlevel 1 echo ERROR: Failed to install Qt WebEngine
 ) else (
     echo Qt WebEngine already installed, skipping

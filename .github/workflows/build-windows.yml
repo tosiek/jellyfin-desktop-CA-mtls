@@ -4,8 +4,8 @@ env:
   # Keep in sync with dev/windows/common.bat
   # 20251214-git-f7be2ee leaks one Windows Event handle per rendered video frame
   MPV_VERSION: "20261018-git-01e2533f31"
-  # Qt WebEngine is installed by dev/windows/qtwebengine-fix.ps1 (release package plus
-  # the WGL interop fixes for AMD drivers (leak, exit crash), https://github.com/tosiek/qt-opengl-amd-leak)
+  # Qt WebEngine is installed by dev/windows/qtwebengine-release.ps1 (aqt installs a stale
+  # pre-release package for 6.12.0)
   QT_VERSION: "6.12.0"
 
 on:
@@ -15,6 +15,7 @@ on:
     branches:
       - master
       - all-fixes
+      - all-fixes-stock-qt
 
 jobs:
   build:
@@ -50,9 +51,9 @@ jobs:
         modules: "qtwebchannel qtpositioning"
         # aqtinstall 3.3.0 cannot read the Qt 6.12 repository yet
         aqtsource: "git+https://github.com/miurahr/aqtinstall.git@076e1659807d0b362a3ed684d54c2e9c775eb9c7"
-    - name: Install Qt WebEngine with the WGL interop fixes
+    - name: Install the release Qt WebEngine package
       run: |
-        & dev/windows/qtwebengine-fix.ps1 -QtDir "$env:QT_ROOT_DIR"
+        & dev/windows/qtwebengine-release.ps1 -QtDir "$env:QT_ROOT_DIR"
       shell: powershell
     - name: Install Inno Setup
       run: |

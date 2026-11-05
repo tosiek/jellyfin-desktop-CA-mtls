@@ -1,6 +1,6 @@
 name: publish-release
 
-# Publishes the newest successful build-windows run of all-fixes as a pre-release, with SHA256SUMS.txt.
+# Publishes the successful build-windows run of the tagged commit as a pre-release, with SHA256SUMS.txt.
 # Start it by pushing a tag: git tag all-fixes-YYYYMMDD && git push origin all-fixes-YYYYMMDD
 on:
   push:
@@ -15,12 +15,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Find the newest successful Windows build
+      - name: Find the Windows build of the tagged commit
         id: build
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build-windows.yml --branch all-fixes --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build-windows.yml --commit "$GITHUB_SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId')
           test -n "$id"
           echo "id=$id" >> "$GITHUB_OUTPUT"
 
